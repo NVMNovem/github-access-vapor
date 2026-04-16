@@ -1,0 +1,96 @@
+openapi: 3.1.0
+
+info:
+  title: GitHub Access API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:4321/
+    description: Localhost
+
+paths:
+  /health:
+    get:
+      operationId: health
+      summary: Check whether the access service is running.
+      responses:
+        '200':
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /github/token:
+    post:
+      operationId: createGitHubToken
+      summary: Create a GitHub installation access token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGitHubToken'
+      responses:
+        '200':
+          description: GitHub installation token created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GitHubToken'
+        '400':
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+
+    CreateGitHubToken:
+      type: object
+      required:
+        - installationId
+      properties:
+        installationId:
+          type: integer
+          format: int64
+          description: GitHub App installation identifier.
+
+    GitHubToken:
+      type: object
+      required:
+        - token
+        - expiresAt
+      properties:
+        token:
+          type: string
+          description: Short-lived GitHub installation access token.
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration timestamp of the installation token.
+
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
