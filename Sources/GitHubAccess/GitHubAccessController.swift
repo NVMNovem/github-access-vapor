@@ -10,17 +10,17 @@ import Vapor
 import OpenAPIRuntime
 import OpenAPIVapor
 
-public struct GitHubAccessController: RouteCollection, APIProtocol {
+internal struct GitHubAccessController: RouteCollection, APIProtocol {
     
     private let app: Application
     private let tokenService: GitHubAppTokenService
     
-    public init(app: Application) throws {
+    internal init(app: Application) throws {
         self.app = app
         self.tokenService = try GitHubAppTokenService(app: app)
     }
     
-    public func boot(routes: RoutesBuilder) throws {
+    internal func boot(routes: RoutesBuilder) throws {
         let transport = VaporTransport(routesBuilder: routes)
         try registerHandlers(on: transport, serverURL: Servers.Server1.url())
     }

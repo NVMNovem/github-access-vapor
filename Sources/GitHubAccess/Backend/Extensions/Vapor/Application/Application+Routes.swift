@@ -10,13 +10,13 @@ import Vapor
 
 extension Application {
     
-    func configureRoutes() async throws {
+    func configureRoutes(project: String) async throws {
         get("github", "setup") { req async throws -> Response in
             guard let installationID = req.query[String.self, at: "installation_id"] else {
                 throw Abort(.badRequest, reason: "Missing installation_id.")
             }
             
-            let redirectURL = "gitsync://github/setup-complete?installation_id=\(installationID)"
+            let redirectURL = "\(project.lowercased())://github/setup-complete?installation_id=\(installationID)"
             
             let html =
             """
@@ -26,7 +26,7 @@ extension Application {
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <meta http-equiv="refresh" content="0; url=\(redirectURL)">
-                <title>GitSync Setup</title>
+                <title>\(project) Setup</title>
             
                 <style>
                     :root {
@@ -97,12 +97,12 @@ extension Application {
             <body>
                 <div class="container">
                     <!-- Replace src with your hosted SVG path -->
-                    <img class="logo" src="/logo.svg" alt="GitSync logo">
+                    <img class="logo" src="/logo.svg" alt="\(project) logo">
             
                     <h1>Connected to GitHub</h1>
-                    <p>Your GitHub account is now linked.<br>GitSync should open automatically.</p>
+                    <p>Your GitHub account is now linked.<br>\(project) should open automatically.</p>
             
-                    <a class="button" href="\(redirectURL)">Open GitSync</a>
+                    <a class="button" href="\(redirectURL)">Open \(project)</a>
             
                     <div class="footer">
                         If nothing happens, click the button above.
