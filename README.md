@@ -1,12 +1,12 @@
 <picture>
   <source srcset="https://github.com/user-attachments/assets/38817448-f9ae-47cd-9e37-34292f9f1746" media="(prefers-color-scheme: light)"/>
   <source srcset="https://github.com/user-attachments/assets/b1dd11dd-98cf-402b-bc11-de31b73302e0"  media="(prefers-color-scheme: dark)"/>
-  <img src="https://github.com/user-attachments/assets/38817448-f9ae-47cd-9e37-34292f9f1746" alt="GitHubAccess"/>
+  <img src="https://github.com/user-attachments/assets/38817448-f9ae-47cd-9e37-34292f9f1746" alt="GitHubAccessVapor"/>
 </picture>
 
-GitHubAccess is a Swift package for integrating GitHub App setup and installation-token generation into Vapor projects.
+GitHubAccessVapor is a Swift package for integrating GitHub App setup and installation-token generation into Vapor projects.
 
-It provides a lightweight API to configure a GitHub access server, validate token requests, and issue GitHub installation tokens, with optional SwiftUI setup flows for client-side integration.
+It provides a lightweight API to configure a GitHub access server, validate token requests, and issue GitHub installation tokens.
 
 ## Platform Compatibility
 This Swift package is designed to run on:
@@ -27,7 +27,7 @@ targets: [
     .target(
         name: "MyApp",
         dependencies: [
-            .product(name: "GitHubAccess", package: "github-access-vapor")
+            .product(name: "GitHubAccessVapor", package: "github-access-vapor")
         ]
     )
 ]
@@ -67,50 +67,5 @@ Expected response:
 {
   "token": "ghs_...",
   "expiresAt": "2026-04-19T12:34:56Z"
-}
-```
-
-#### SwiftUI ViewModifier
-```swift
-import GitHubAccess
-
-struct ContentView: View {
-    var body: some View {
-        MainView()
-            .gitHubSetup { result in
-                switch result {
-                case .success(let installationId):
-                    print("Installation ID:", installationId)
-                case .failure(let error):
-                    print("Setup failed:", error)
-                }
-            }
-    }
-}
-```
-
-#### SwiftUI Scene
-
-Use this when working with `DocumentGroup` scenes.
-
-```swift
-import GitHubAccess
-
-@main
-struct MyApp: App {
-    var body: some Scene {
-        DocumentGroup(newDocument: MyDocument()) { file in
-            DocumentView(document: file.$document)
-        }
-
-        GitHubSetup { result in
-            switch result {
-            case .success(let installationId):
-                print("Installation ID:", installationId)
-            case .failure(let error):
-                print("Setup failed:", error)
-            }
-        }
-    }
 }
 ```

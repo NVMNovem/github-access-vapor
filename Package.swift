@@ -7,7 +7,7 @@ let package = Package(
     name: "github-access-vapor",
     platforms: [.macOS(.v14)],
     products: [
-        .library(name: "GitHubAccess", targets: ["GitHubAccess"]),
+        .library(name: "GitHubAccessVapor", targets: ["GitHubAccessVapor"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-openapi-generator", from: Version(1,10,0)),
@@ -18,7 +18,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "GitHubAccess",
+            name: "GitHubAccessVapor",
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
@@ -28,8 +28,8 @@ let package = Package(
             plugins: [.plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")]
         ),
         .testTarget(
-            name: "GitHubAccessTests",
-            dependencies: ["GitHubAccess"]
+            name: "GitHubAccessVaporTests",
+            dependencies: ["GitHubAccessVapor"]
         ),
     ],
     swiftLanguageModes: [.v6]
