@@ -6,7 +6,7 @@
 //
 
 import Testing
-@testable import GitHubAccess
+@testable import GitHubAccessVapor
 
 @Suite("CreateGitHubToken Validation")
 struct CreateGitHubTokenValidationTests {

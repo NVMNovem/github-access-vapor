@@ -7,7 +7,7 @@
 
 import Foundation
 import Testing
-@testable import GitHubAccess
+@testable import GitHubAccessVapor
 
 @Suite("GitHubInstallationToken")
 struct GitHubInstallationTokenTests {

@@ -8,7 +8,7 @@
 import Foundation
 import Testing
 import Vapor
-@testable import GitHubAccess
+@testable import GitHubAccessVapor
 
 @Suite(.serialized)
 struct GitHubAppTokenServiceTests {

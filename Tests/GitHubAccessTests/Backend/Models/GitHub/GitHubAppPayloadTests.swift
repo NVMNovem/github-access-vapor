@@ -8,7 +8,7 @@
 import Foundation
 import JWTKit
 import Testing
-@testable import GitHubAccess
+@testable import GitHubAccessVapor
 
 @Suite("GitHubAppPayload")
 struct GitHubAppPayloadTests {

@@ -6,7 +6,7 @@
 //
 
 import Testing
-@testable import GitHubAccess
+@testable import GitHubAccessVapor
 
 @Suite("GitHubAccessController Error")
 struct GitHubAccessControllerErrorTests {
