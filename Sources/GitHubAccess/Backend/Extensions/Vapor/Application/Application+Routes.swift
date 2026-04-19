@@ -10,7 +10,7 @@ import Vapor
 
 extension Application {
     
-    func configureRoutes(project: String) async throws {
+    func configureRoutes(project: String, accent hex: String) async throws {
         get("github", "setup") { req async throws -> Response in
             guard let installationID = req.query[String.self, at: "installation_id"] else {
                 throw Abort(.badRequest, reason: "Missing installation_id.")
@@ -31,7 +31,7 @@ extension Application {
                 <style>
                     :root {
                         color-scheme: light dark;
-                        --accent: #F03C2E;
+                        --accent: #\(hex.trimmingPrefix("#"));
                     }
             
                     body {

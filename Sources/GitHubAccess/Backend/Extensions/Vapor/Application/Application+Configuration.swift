@@ -9,12 +9,12 @@ import Vapor
 
 extension Application {
     
-    public func configureAccessServer(project: String) async throws {
+    public func configureAccessServer(project: String, accent hex: String) async throws {
         let controller = try GitHubAccessController(app: self)
         try routes.register(collection: controller)
         
         middleware.use(FileMiddleware(publicDirectory: directory.publicDirectory))
         
-        try await configureRoutes(project: project)
+        try await configureRoutes(project: project, accent: hex)
     }
 }
