@@ -4,9 +4,9 @@
   <img src="https://github.com/user-attachments/assets/38817448-f9ae-47cd-9e37-34292f9f1746" alt="GitHubAccess"/>
 </picture>
 
-Swift Async Scheduler is a small, dependency-free Swift package for scheduling and running asynchronous jobs.
+GitHubAccess is a Swift package for integrating GitHub App setup and installation-token generation into Vapor projects.
 
-This package provides a lightweight API for creating recurring and scheduled async jobs, intended for use in server- and app-side Swift code. It intentionally avoids external dependencies — it's written in plain Swift and integrates with the Swift concurrency model.
+It provides a lightweight API to configure a GitHub access server, validate token requests, and issue GitHub installation tokens, with optional SwiftUI setup flows for client-side integration.
 
 ## Platform Compatibility
 This Swift package is designed to run on:
