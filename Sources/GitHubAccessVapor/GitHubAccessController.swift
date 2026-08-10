@@ -13,13 +13,11 @@ import OpenAPIVapor
 internal struct GitHubAccessController: RouteCollection, APIProtocol {
     
     private let app: Application
-    private let tokenService: GitHubAppTokenService
-    
-    internal init(app: Application) throws {
+
+    internal init(app: Application) {
         self.app = app
-        self.tokenService = try GitHubAppTokenService(app: app)
     }
-    
+
     internal func boot(routes: RoutesBuilder) throws {
         let transport = VaporTransport(routesBuilder: routes)
         try registerHandlers(on: transport, serverURL: Servers.Server1.url())
@@ -30,7 +28,7 @@ internal struct GitHubAccessController: RouteCollection, APIProtocol {
         case .json(let createGitHubToken):
             let installationId = try createGitHubToken.validated(\.installationId)
             
-            let token = try await tokenService.createInstallationToken(for: installationId)
+            let token = try await app.gitHubAccess.installationToken(for: installationId)
             
             return .ok(.init(body: .json(.init(
                 token: token.token,

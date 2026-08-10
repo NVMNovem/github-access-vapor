@@ -16,6 +16,11 @@ public struct GitHubInstallationToken: Decodable {
         case token
         case expiresAt = "expires_at"
     }
+
+    public init(token: String, expiresAt: Date) {
+        self.token = token
+        self.expiresAt = expiresAt
+    }
 }
 
 extension GitHubInstallationToken: Sendable {}
