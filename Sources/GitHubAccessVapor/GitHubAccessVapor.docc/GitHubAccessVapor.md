@@ -60,6 +60,7 @@ symbols of this module:
 | `app.gitHubEvents` | The ``GitHubEventDispatcher`` webhook handlers register on. |
 | `app.configureWebhooks(secret:path:)` | Mounts the webhook endpoint. See <doc:GitHubWebhooks>. |
 | `app.configureAccessServer(project:accent:servesAssets:userAgent:)` | Mounts `/health`, `/github/token`, and `/github/setup`. |
+| `app.configureSetupPage(project:accent:servesAssets:)` | Mounts only `/github/setup`, for clients that sign in with user tokens. Needs no GitHub App configuration. |
 
 ## Topics
 

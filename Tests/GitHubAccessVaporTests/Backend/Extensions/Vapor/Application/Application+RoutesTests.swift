@@ -62,4 +62,19 @@ struct GitHubSetupRouteTests {
             }
         }
     }
+
+    @Test("mounts on its own, without GitHub App configuration or the token route")
+    func mountsSetupPageAlone() async throws {
+        try await withApp { app in
+            try await app.configureSetupPage(project: "GitAssist", accent: "34C759", servesAssets: false)
+
+            try await app.testing().test(.GET, "github/setup?installation_id=12345678") { response async in
+                #expect(response.status == .ok)
+                #expect(response.body.string.contains("gitassist://github/setup-complete?installation_id=12345678"))
+            }
+            try await app.testing().test(.POST, "github/token") { response async in
+                #expect(response.status == .notFound)
+            }
+        }
+    }
 }
