@@ -12,10 +12,16 @@ extension Application {
     
     func configureRoutes(project: String, accent hex: String) async throws {
         get("github", "setup") { req async throws -> Response in
-            guard let installationID = req.query[String.self, at: "installation_id"] else {
+            guard let rawInstallationID = req.query[String.self, at: "installation_id"] else {
                 throw Abort(.badRequest, reason: "Missing installation_id.")
             }
-            
+
+            // The ID is written into the page's HTML and script below, so only a number may reach
+            // it. Anything else would be reflected XSS on whatever domain hosts this route.
+            guard let installationID = Int64(rawInstallationID), installationID > 0 else {
+                throw Abort(.badRequest, reason: "installation_id must be a positive integer.")
+            }
+
             let redirectURL = "\(project.lowercased())://github/setup-complete?installation_id=\(installationID)"
             
             let html =
