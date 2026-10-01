@@ -66,6 +66,14 @@ inject secrets as environment variables. The path wins when both are set.
 `configureAccessServer` installs `FileMiddleware` to serve the setup page's `/logo.svg`. Pass
 `servesAssets: false` if your application configures its own middleware stack.
 
+If your clients sign in to GitHub themselves with user access tokens and need no installation
+token from the server, mount only the setup page GitHub's install redirect lands on. It reads no
+GitHub App configuration:
+
+```swift
+try await app.configureSetupPage(project: "MyApp", accent: "34C759")
+```
+
 Request an installation token:
 
 ```bash
