@@ -20,7 +20,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-crypto.git", Version(3,0,0)..<Version(5,0,0)),
         // Platform-neutral GitHub App models shared with the clients. Pinned to a branch until the
         // models are released; switch to a version requirement then.
-        .package(url: "https://github.com/NVMNovem/github-access-api.git", branch: "claude/project-thread-c9tvzt")
+        .package(url: "https://github.com/NVMNovem/github-access-api.git", from: "1.0.1")
     ],
     targets: [
         .target(

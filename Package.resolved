@@ -1,5 +1,5 @@
 {
-  "originHash" : "8497de8ffcf9f25513ecb8a889764d419421b4c50606b81139c1a124f40bac5f",
+  "originHash" : "6fc0edf87e22dd5849b9b3f25169bdc9cf0d4bb9830225e2ba4ff7fc9c8f69d1",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NVMNovem/github-access-api.git",
       "state" : {
-        "branch" : "claude/project-thread-c9tvzt",
-        "revision" : "c03d2bc24ecf464acb2153a29d129feab0ae2c5f"
+        "revision" : "7677cc1470cf593896c75263b479b4aa2ffcbb22",
+        "version" : "1.0.1"
       }
     },
     {
@@ -143,6 +143,15 @@
       "state" : {
         "revision" : "6675bc0ff86e61436e615df6fc5174e043e57924",
         "version" : "1.4.1"
+      }
+    },
+    {
+      "identity" : "swift-configuration",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-configuration.git",
+      "state" : {
+        "revision" : "8bae88f79dbddec793390c5bf3e2abb4ac2ece42",
+        "version" : "1.2.2"
       }
     },
     {
