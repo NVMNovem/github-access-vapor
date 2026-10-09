@@ -338,3 +338,44 @@ struct GitHubWebhookRouteTests {
         }
     }
 }
+
+@Suite("GitHub webhook secret provider")
+struct GitHubWebhookSecretProviderTests {
+
+    private let fixture = GitHubWebhookFixture.releasePublished
+
+    @Test("a provider's secret verifies deliveries, and a missing one is a 503, never an accepted delivery")
+    func providerSecret() async throws {
+        let secret = LockedBox<String?>(nil)
+        try await withApp { app in
+            try app.configureWebhooks(secret: .provider { secret.value }, path: "github", "webhook")
+
+            try await app.testing().test(
+                .POST, GitHubWebhookFixture.path,
+                headers: GitHubWebhookFixture.headers(body: fixture), body: ByteBuffer(data: fixture)
+            ) { response async in #expect(response.status == .serviceUnavailable) }
+
+            secret.value = GitHubWebhookFixture.secret
+            try await app.testing().test(
+                .POST, GitHubWebhookFixture.path,
+                headers: GitHubWebhookFixture.headers(body: fixture), body: ByteBuffer(data: fixture)
+            ) { response async in #expect(response.status == .accepted) }
+
+            try await app.testing().test(
+                .POST, GitHubWebhookFixture.path,
+                headers: GitHubWebhookFixture.headers(body: fixture, secret: "wrong", deliveryID: "other"),
+                body: ByteBuffer(data: fixture)
+            ) { response async in #expect(response.status == .unauthorized) }
+        }
+    }
+}
+
+private final class LockedBox<Value: Sendable>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var stored: Value
+    init(_ value: Value) { stored = value }
+    var value: Value {
+        get { lock.withLock { stored } }
+        set { lock.withLock { stored = newValue } }
+    }
+}

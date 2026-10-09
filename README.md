@@ -275,6 +275,9 @@ import GitHubAccessVapor
 Sign the exact bytes you send: signing an encoded fixture and then sending a re-encoded copy produces
 a signature that will not verify.
 
+A secret that only exists after start-up (the manifest flow generates it) is passed as
+`.provider { … }`, asked for on every delivery; until it returns a value, deliveries get `503`.
+
 ## Upgrading
 
 - `POST /github/token` is no longer mounted by `configureAccessServer` unless you pass `tokens:`

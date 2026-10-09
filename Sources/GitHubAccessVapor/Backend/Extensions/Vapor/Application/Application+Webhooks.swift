@@ -40,7 +40,8 @@ extension Application {
     ///   - recentDeliveryCapacity: How many recent delivery identifiers to remember for
     ///     deduplication.
     /// - Throws: When the secret cannot be resolved — a misconfigured server fails at start-up
-    ///   rather than on the first delivery.
+    ///   rather than on the first delivery. A ``GitHubWebhookSecret/provider(_:)`` secret is the exception:
+    ///   it is asked for per delivery, and a delivery arriving before it exists is refused with `503`.
     @discardableResult
     public func configureWebhooks(
         secret: GitHubWebhookSecret,
@@ -66,7 +67,8 @@ extension Application {
         maxBodySize: ByteCount = "25mb",
         recentDeliveryCapacity: Int = 512
     ) throws -> Route {
-        let verifier = GitHubWebhookSignatureVerifier(secret: try secret.resolve())
+        // A deferred secret cannot be checked now; a missing one is refused per delivery instead.
+        let fixed: GitHubWebhookSignatureVerifier? = secret.isDeferred ? nil : GitHubWebhookSignatureVerifier(secret: try secret.resolve())
         let deduplicator = GitHubDeliveryDeduplicator(capacity: recentDeliveryCapacity)
         let dispatcher = gitHubEvents
         let routePath = path.isEmpty ? Application.defaultWebhookPath : path
@@ -99,6 +101,8 @@ extension Application {
                 throw Abort(.badRequest, reason: "Missing \(GitHubWebhookHeader.delivery) header.")
             }
 
+            let verifier: GitHubWebhookSignatureVerifier
+            if let fixed { verifier = fixed } else { verifier = GitHubWebhookSignatureVerifier(secret: try await secret.current()) }
             guard verifier.isValidSignature(signature, body: rawBody) else {
                 throw Abort(.unauthorized, reason: "Invalid webhook signature.")
             }

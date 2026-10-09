@@ -18,6 +18,18 @@ app.gitHubEvents.on(.release) { event, request in
 registered on `app.gitHubEvents` — a ``GitHubEventDispatcher`` — can be added before or after it;
 nothing reaches them until a delivery's signature has verified.
 
+### A secret that arrives after start-up
+
+When the App is created from a manifest, GitHub generates the webhook secret after the server is
+already running, and a route cannot be added to a running server. Pass
+``GitHubWebhookSecret/provider(_:)`` so the secret is asked for on every delivery. Until it returns
+a value, deliveries are refused with `503`, never accepted unverified.
+
+```swift
+try app.configureWebhooks(secret: .provider { await secrets.webhookSecret() },
+                          path: "github", "webhook")
+```
+
 ### The signature covers the raw body
 
 GitHub signs the **bytes it sent**, and puts an HMAC-SHA256 of them in `X-Hub-Signature-256` as
