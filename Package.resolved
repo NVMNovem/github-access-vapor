@@ -1,5 +1,5 @@
 {
-  "originHash" : "1081e0751c06f44536e58a597a12f0da646517d6c043de7bd87444ee979b2003",
+  "originHash" : "3a59dfe8d0ce37e7000456330b5b0cca7cbb8631c2a4c0a4c821b2737aa7dafb",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "32ad16dfc7677b927b225595ed18f3debb32f577",
         "version" : "4.16.0"
+      }
+    },
+    {
+      "identity" : "github-access-api",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NVMNovem/github-access-api.git",
+      "state" : {
+        "branch" : "claude/project-thread-c9tvzt",
+        "revision" : "c03d2bc24ecf464acb2153a29d129feab0ae2c5f"
       }
     },
     {

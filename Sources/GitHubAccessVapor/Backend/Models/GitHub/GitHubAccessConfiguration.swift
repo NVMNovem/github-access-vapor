@@ -28,11 +28,30 @@ public struct GitHubAccessConfiguration: Sendable {
     /// finishing with an expired one.
     public var refreshLeeway: TimeInterval
 
+    /// Where GitHub's REST API lives: `https://api.github.com`, or `https://<host>/api/v3` for
+    /// GitHub Enterprise Server. Tests point it at a fake.
+    public var apiBaseURL: URL
+
     public init(
         userAgent: String = GitHubAccessConfiguration.defaultUserAgent,
-        refreshLeeway: TimeInterval = GitHubAccessConfiguration.defaultRefreshLeeway
+        refreshLeeway: TimeInterval = GitHubAccessConfiguration.defaultRefreshLeeway,
+        apiBaseURL: URL = GitHubAccessConfiguration.defaultAPIBaseURL
     ) {
         self.userAgent = userAgent
         self.refreshLeeway = refreshLeeway
+        self.apiBaseURL = apiBaseURL
+    }
+
+    /// `https://api.github.com`.
+    public static let defaultAPIBaseURL = URL(string: "https://api.github.com")!
+}
+
+extension GitHubAccessConfiguration {
+
+    /// `base` joined with `path`, tolerating a trailing slash on the one and a missing leading slash on the other.
+    internal static func endpoint(_ base: URL, _ path: String) -> String {
+        var root = base.absoluteString
+        while root.hasSuffix("/") { root.removeLast() }
+        return root + (path.hasPrefix("/") ? path : "/" + path)
     }
 }
