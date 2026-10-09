@@ -19,11 +19,17 @@ internal struct GitHubAppTokenService: Sendable {
     internal let appID: String
     internal let privateKeyPEM: String
     internal let userAgent: String
+    internal let apiBaseURL: URL
 
     /// - Parameters:
     ///   - app: The application whose `client` and `logger` are used.
     ///   - userAgent: The `User-Agent` sent to GitHub. Defaults to ``defaultUserAgent``.
-    internal init(app: Application, userAgent: String = GitHubAppTokenService.defaultUserAgent) throws {
+    ///   - apiBaseURL: Where GitHub's REST API lives.
+    internal init(
+        app: Application,
+        userAgent: String = GitHubAppTokenService.defaultUserAgent,
+        apiBaseURL: URL = GitHubAccessConfiguration.defaultAPIBaseURL
+    ) throws {
         let appID = try GitHubConfiguration.value(named: GitHubConfiguration.appIDKey)
         let privateKeyPEM = try Self.resolvedPrivateKeyPEM()
 
@@ -31,6 +37,21 @@ internal struct GitHubAppTokenService: Sendable {
         self.appID = appID
         self.privateKeyPEM = privateKeyPEM
         self.userAgent = userAgent
+        self.apiBaseURL = apiBaseURL
+    }
+
+    /// Uses credentials the host supplied instead of reading the environment.
+    internal init(
+        app: Application,
+        credentials: GitHubAppCredentials,
+        userAgent: String,
+        apiBaseURL: URL
+    ) {
+        self.app = app
+        self.appID = credentials.appID
+        self.privateKeyPEM = credentials.privateKeyPEM
+        self.userAgent = userAgent
+        self.apiBaseURL = apiBaseURL
     }
 
     internal func createInstallationToken(for installationID: Int64) async throws -> GitHubInstallationToken {
@@ -63,7 +84,8 @@ internal struct GitHubAppTokenService: Sendable {
         )
     }
 
-    private func githubAppJWT() async throws -> String {
+    /// A short-lived JWT that authenticates as the App itself (not as an installation).
+    internal func githubAppJWT() async throws -> String {
         let payload = GitHubAppPayload(appID: appID)
         let privateKey = try Insecure.RSA.PrivateKey(pem: privateKeyPEM)
         let keys = JWTKeyCollection()
@@ -77,7 +99,7 @@ internal struct GitHubAppTokenService: Sendable {
         jwt: String
     ) async throws -> GitHubInstallationToken {
         let response = try await app.client.post(
-            URI(string: "https://api.github.com/app/installations/\(installationID)/access_tokens")
+            URI(string: GitHubAccessConfiguration.endpoint(apiBaseURL, "/app/installations/\(installationID)/access_tokens"))
         ) { request in
             request.headers.bearerAuthorization = .init(token: jwt)
             request.headers.add(name: .accept, value: "application/vnd.github+json")

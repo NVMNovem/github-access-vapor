@@ -24,10 +24,12 @@ internal actor GitHubInstallationTokenStore {
     /// Mints one token for an installation, addressing GitHub with the given `User-Agent`.
     internal typealias Minter = @Sendable (Int64, String) async throws -> GitHubInstallationToken
 
-    private let application: Application
+    internal let application: Application
     private let minter: Minter?
 
     private var service: GitHubAppTokenService?
+    private var credentials: GitHubAppCredentials?
+    private var cachedAppSlug: String?
     private var tokens: [Int64: GitHubInstallationToken] = [:]
     private var refreshes: [Int64: Task<GitHubInstallationToken, Swift.Error>] = [:]
 
@@ -66,7 +68,7 @@ internal actor GitHubInstallationTokenStore {
             let userAgent = configuration.userAgent
             refresh = Task { try await minter(installationID, userAgent) }
         } else {
-            let service = try resolvedService(userAgent: configuration.userAgent)
+            let service = try resolvedService(configuration: configuration)
             refresh = Task { try await service.createInstallationToken(for: installationID) }
         }
         refreshes[installationID] = refresh
@@ -90,17 +92,51 @@ internal actor GitHubInstallationTokenStore {
     internal func prepare(configuration: GitHubAccessConfiguration) throws {
         guard minter == nil else { return }
 
-        _ = try resolvedService(userAgent: configuration.userAgent)
+        _ = try resolvedService(configuration: configuration)
+    }
+
+    /// Signs with `credentials` from now on, and forgets every cached token: they belonged to the
+    /// previous App and are useless under the new one.
+    internal func setCredentials(_ credentials: GitHubAppCredentials?) {
+        self.credentials = credentials
+        cachedAppSlug = nil
+        service = nil
+        tokens.removeAll()
+    }
+
+    /// The App's slug, fetched with `fetch` the first time and remembered.
+    internal func appSlug(fetch: @Sendable () async throws -> String) async throws -> String {
+        if let cachedAppSlug { return cachedAppSlug }
+        let slug = try await fetch()
+        cachedAppSlug = slug
+        return slug
+    }
+
+    /// A JWT that authenticates as the App, for the endpoints that are about the App or its
+    /// installations rather than something an installation can see.
+    internal func appJWT(configuration: GitHubAccessConfiguration) async throws -> String {
+        try await resolvedService(configuration: configuration).githubAppJWT()
     }
 
     /// The token service is resolved on first use so that `app.gitHubAccess` is available
-    /// without any configuration step, and rebuilt when the configured `User-Agent` changes.
-    private func resolvedService(userAgent: String) throws -> GitHubAppTokenService {
-        if let service, service.userAgent == userAgent {
+    /// without any configuration step, and rebuilt when the configured `User-Agent`, API URL or
+    /// credentials change.
+    private func resolvedService(configuration: GitHubAccessConfiguration) throws -> GitHubAppTokenService {
+        if let service, service.userAgent == configuration.userAgent, service.apiBaseURL == configuration.apiBaseURL {
             return service
         }
 
-        let service = try GitHubAppTokenService(app: application, userAgent: userAgent)
+        let service: GitHubAppTokenService
+        if let credentials {
+            service = GitHubAppTokenService(
+                app: application, credentials: credentials,
+                userAgent: configuration.userAgent, apiBaseURL: configuration.apiBaseURL
+            )
+        } else {
+            service = try GitHubAppTokenService(
+                app: application, userAgent: configuration.userAgent, apiBaseURL: configuration.apiBaseURL
+            )
+        }
         self.service = service
 
         return service

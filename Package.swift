@@ -16,7 +16,11 @@ let package = Package(
         .package(url: "https://github.com/vapor/swift-openapi-vapor", from: Version(1,0,0)),
         .package(url: "https://github.com/vapor/vapor.git", from: Version(4,0,0)),
         .package(url: "https://github.com/vapor/jwt.git", from: Version(5,0,0)),
-        .package(url: "https://github.com/apple/swift-crypto.git", Version(3,0,0)..<Version(5,0,0))
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: Version(1,0,0)),
+        .package(url: "https://github.com/apple/swift-crypto.git", Version(3,0,0)..<Version(5,0,0)),
+        // Platform-neutral GitHub App models shared with the clients. Pinned to a branch until the
+        // models are released; switch to a version requirement then.
+        .package(url: "https://github.com/NVMNovem/github-access-api.git", branch: "claude/project-thread-c9tvzt")
     ],
     targets: [
         .target(
@@ -26,14 +30,18 @@ let package = Package(
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
                 .product(name: "OpenAPIVapor", package: "swift-openapi-vapor"),
                 .product(name: "JWT", package: "jwt"),
-                .product(name: "Crypto", package: "swift-crypto")
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "Crypto", package: "swift-crypto"),
+                .product(name: "GitHubAccessModels", package: "github-access-api")
             ],
             plugins: [.plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")]
         ),
         .target(
             name: "GitHubAccessVaporTesting",
             dependencies: [
-                .product(name: "Crypto", package: "swift-crypto")
+                .product(name: "Crypto", package: "swift-crypto"),
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "GitHubAccessModels", package: "github-access-api")
             ]
         ),
         .testTarget(

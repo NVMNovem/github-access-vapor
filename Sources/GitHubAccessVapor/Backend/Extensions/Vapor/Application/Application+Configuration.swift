@@ -7,9 +7,26 @@
 
 import Vapor
 
+/// Who may call `POST /github/token`, which hands out installation tokens.
+///
+/// An installation token can read and clone every repository the installation covers, so the
+/// route that issues them is the most sensitive one in the package. Until 3.0 it was open to anyone
+/// who could reach the server and knew an installation ID; it is now off unless the host chooses.
+public enum GitHubTokenAccess: Sendable {
+    /// The route answers `404`. Tokens are still available in-process through `app.gitHubAccess`.
+    case disabled
+    /// The route runs `authenticate` first and answers only if it returns; it throws to refuse
+    /// (typically `Abort(.unauthorized)`), and sees the whole request, so it can check a header,
+    /// a client certificate or the peer's address.
+    case authenticated(@Sendable (Request) async throws -> Void)
+    /// The route answers anyone who can reach it: the behaviour before 3.0, for servers that are
+    /// reachable only from a trusted network. Naming it makes that choice visible in the code.
+    case unauthenticated
+}
+
 extension Application {
 
-    /// Mounts the access server: the OpenAPI routes (`/health`, `/github/token`) and the
+    /// Mounts the access server: the OpenAPI routes (`/health`, and `/github/token` if ``GitHubTokenAccess`` allows) and the
     /// `/github/setup` redirect page.
     ///
     /// Calling this is optional. `app.gitHubAccess` mints tokens in-process without it.
@@ -21,17 +38,19 @@ extension Application {
     ///     `/logo.svg` from the public directory. Hosts that already configure their own middleware
     ///     stack should pass `false`.
     ///   - userAgent: The `User-Agent` GitHub is addressed with.
+    ///   - tokens: Who may call `POST /github/token`; see ``GitHubTokenAccess``. Off by default.
     public func configureAccessServer(
         project: String,
         accent hex: String,
         servesAssets: Bool = true,
-        userAgent: String = GitHubAccessConfiguration.defaultUserAgent
+        userAgent: String = GitHubAccessConfiguration.defaultUserAgent,
+        tokens: GitHubTokenAccess = .disabled
     ) async throws {
         gitHubAccess.configuration.userAgent = userAgent
         try await gitHubAccess.prepare()
 
         let controller = GitHubAccessController(app: self)
-        try routes.register(collection: controller)
+        try routes.grouped(GitHubTokenGuard(access: tokens)).register(collection: controller)
 
         if servesAssets {
             middleware.use(FileMiddleware(publicDirectory: directory.publicDirectory))
@@ -62,5 +81,21 @@ extension Application {
         }
 
         try await configureRoutes(project: project, accent: hex)
+    }
+}
+
+/// Applies ``GitHubTokenAccess`` to `/github/token` and leaves every other route alone.
+internal struct GitHubTokenGuard: AsyncMiddleware {
+    let access: GitHubTokenAccess
+
+    func respond(to request: Request, chainingTo next: any AsyncResponder) async throws -> Response {
+        guard request.url.path == "/github/token" else { return try await next.respond(to: request) }
+        switch access {
+        case .disabled: throw Abort(.notFound)
+        case .authenticated(let authenticate):
+            try await authenticate(request)
+            return try await next.respond(to: request)
+        case .unauthenticated: return try await next.respond(to: request)
+        }
     }
 }

@@ -92,6 +92,19 @@ extension Application {
             await store.removeAllTokens()
         }
 
+        /// Signs with `credentials` instead of the `GITHUB_*` environment variables.
+        ///
+        /// Call it again to replace them (the App was recreated); cached installation tokens belonged
+        /// to the old App and are dropped. Pass `nil` to go back to the environment.
+        public func useCredentials(_ credentials: GitHubAppCredentials?) async {
+            await store.setCredentials(credentials)
+        }
+
+        /// A JWT that authenticates as the App itself, for the App-level endpoints.
+        internal func appJWT() async throws -> String {
+            try await store.appJWT(configuration: configuration)
+        }
+
         /// Resolves the GitHub App configuration eagerly so that a misconfigured server fails at
         /// start-up rather than on the first token request.
         internal func prepare() async throws {
