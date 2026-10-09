@@ -7,7 +7,7 @@ import NIOFoundationCompat
 import Vapor
 
 /// REST access to GitHub as one installation of the App. Obtain it from
-/// ``Vapor/Application/GitHubAccess/client(for:)``.
+/// `Vapor/Application/GitHubAccess/client(for:)`.
 ///
 /// ```swift
 /// let github = app.gitHubAccess.client(for: installationID)
@@ -79,7 +79,7 @@ public struct GitHubInstallationClient: Sendable {
     /// The result is checked before it is accepted: the byte count against `asset.size`, and the
     /// SHA-256 against `asset.digest` when GitHub provided one.
     ///
-    /// - Throws: ``GitHubAPIError``, or an ``Abort`` with `502` if the transfer was cut short or did
+    /// - Throws: ``GitHubAPIError``, or an `Abort` with `502` if the transfer was cut short or did
     ///   not match what GitHub described.
     public func downloadAsset(_ asset: GitHubReleaseAsset, in repository: String, to destination: URL) async throws -> DownloadedAsset {
         guard let assetID = asset.id else { throw Abort(.badRequest, reason: "The release asset has no ID.") }
@@ -102,7 +102,7 @@ public struct GitHubInstallationClient: Sendable {
         }
 
         let partial = destination.appendingPathExtension("partial")
-        FileManager.default.createFile(atPath: partial.path, contents: nil)
+        _ = FileManager.default.createFile(atPath: partial.path, contents: nil)
         let handle = try FileHandle(forWritingTo: partial)
         var hasher = SHA256()
         var count = 0

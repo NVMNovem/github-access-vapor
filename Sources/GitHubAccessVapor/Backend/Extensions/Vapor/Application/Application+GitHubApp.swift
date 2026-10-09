@@ -32,7 +32,7 @@ extension Application.GitHubAccess {
 
     /// REST access as one installation: repositories, releases and release assets.
     ///
-    /// The installation token is minted, cached and renewed by ``installationToken(for:)``; a token
+    /// The installation token is minted, cached and renewed by `installationToken(for:)`; a token
     /// GitHub refuses is replaced once before the call fails.
     public func client(for installationID: Int64) -> GitHubInstallationClient {
         GitHubInstallationClient(installationID: installationID, api: GitHubAPI(store.application))

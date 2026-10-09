@@ -5,7 +5,7 @@ import Foundation
 ///
 /// The Manager is the case that needs this: it creates the App through the manifest flow, receives
 /// the key from GitHub once, and keeps it in its own secret store. Pass it to
-/// ``Vapor/Application/GitHubAccess/useCredentials(_:)`` and every token, setup check and REST call
+/// `Vapor/Application/GitHubAccess/useCredentials(_:)` and every token, setup check and REST call
 /// signs with it. Without a call to that, the credentials are read from `GITHUB_APP_ID` and
 /// `GITHUB_PRIVATE_KEY_PATH` / `GITHUB_PRIVATE_KEY` as before.
 ///

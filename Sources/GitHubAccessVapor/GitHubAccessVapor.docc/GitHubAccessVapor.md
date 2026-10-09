@@ -4,12 +4,14 @@ GitHub App setup, installation tokens, and webhook delivery for Vapor projects.
 
 ## Overview
 
-The package does three things:
+The package does four things:
 
 - **Mints installation tokens**, in-process through `app.gitHubAccess` or over HTTP through
-  `POST /github/token`. Tokens are cached per installation and refreshed before they expire.
+  `POST /github/token` (off unless the host enables it; see ``GitHubTokenAccess``). Tokens are cached per installation and refreshed before they expire.
 - **Receives webhooks**, verifying GitHub's signature over the raw request body and handing verified
   deliveries to handlers registered on `app.gitHubEvents`.
+- **Sets the App up and calls GitHub**: creates it from a manifest, verifies installations, and lists
+  repositories and releases. See <doc:GitHubAppSetup>.
 - **Serves the GitHub App setup page** at `/github/setup`, which redirects back into your app after
   an installation completes.
 
@@ -59,7 +61,12 @@ symbols of this module:
 | `app.gitHubAccess` | Mints and caches installation tokens. See <doc:GitHubInstallationTokens>. |
 | `app.gitHubEvents` | The ``GitHubEventDispatcher`` webhook handlers register on. |
 | `app.configureWebhooks(secret:path:)` | Mounts the webhook endpoint. See <doc:GitHubWebhooks>. |
-| `app.configureAccessServer(project:accent:servesAssets:userAgent:)` | Mounts `/health`, `/github/token`, and `/github/setup`. |
+| `app.configureAccessServer(project:accent:servesAssets:userAgent:tokens:)` | Mounts `/health`, `/github/setup`, and `/github/token` when `tokens` allows it (it does not by default). |
+| `app.gitHubAccess.setup(states:)`, `.manifest(states:)` | The verified installation and App-creation flows. See <doc:GitHubAppSetup>. |
+| `app.gitHubAccess.mountSetupCallback`, `.mountManifestCallback` | Mount the redirect routes for those flows. |
+| `app.gitHubAccess.client(for:)`, `.installation(id:)`, `.installations()`, `.appSlug()` | GitHub REST calls as the App and as an installation. |
+| `app.gitHubAccess.keepInstallations(in:)`, `.reconcileInstallations(in:)` | Keep a ``GitHubInstallationStore`` current. |
+| `app.gitHubAccess.useCredentials(_:)` | Sign with ``GitHubAppCredentials`` instead of the environment. |
 | `app.configureSetupPage(project:accent:servesAssets:)` | Mounts only `/github/setup`, for clients that sign in with user tokens. Needs no GitHub App configuration. |
 
 ## Topics
@@ -68,11 +75,13 @@ symbols of this module:
 
 - <doc:GitHubInstallationTokens>
 - <doc:GitHubWebhooks>
+- <doc:GitHubAppSetup>
 
 ### Installation tokens
 
 - ``GitHubAccessConfiguration``
 - ``GitHubInstallationToken``
+- ``GitHubTokenAccess``
 
 ### Webhooks
 

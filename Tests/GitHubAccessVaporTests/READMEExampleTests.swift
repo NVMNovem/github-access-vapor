@@ -25,6 +25,61 @@ struct READMEExampleTests {
         try await app.configureAccessServer(project: "MyApp", accent: "34C759")
     }
 
+    func configureTokenRoute(_ app: Application, serviceKey: String) async throws {
+        try await app.configureAccessServer(
+            project: "MyApp", accent: "34C759",
+            tokens: .authenticated { request in
+                guard request.headers.first(name: "X-Service-Key") == serviceKey else { throw Abort(.unauthorized) }
+            }
+        )
+    }
+
+    // MARK: - Setting up the App
+
+    func configureInstall(_ app: Application) async throws -> GitHubSetupFlow {
+        let installations = InMemoryGitHubInstallationStore()
+
+        // GitHub's "Setup URL" for the App points at this route. It sits outside user authentication,
+        // because GitHub's redirect carries none: the state is what authenticates it.
+        let flow = app.gitHubAccess.mountSetupCallback(
+            at: ["github", "installed"],
+            states: InMemoryGitHubSetupStateStore(),
+            store: installations
+        ) { outcome, _ in
+            switch outcome {
+            case .installed(_, let subject):
+                return Response(status: .seeOther, headers: ["Location": "https://console.example.com/github?connected=\(subject)"])
+            case .requested:
+                return Response(status: .seeOther, headers: ["Location": "https://console.example.com/github?requested=1"])
+            }
+        }
+
+        app.gitHubAccess.keepInstallations(in: installations)
+        return flow
+    }
+
+    func configureManifest(_ app: Application) {
+        app.gitHubAccess.mountManifestCallback(
+            at: ["github", "created"], states: InMemoryGitHubSetupStateStore()
+        ) { conversion, subject, request in
+            // The App's secrets exist in exactly this one response. Put them in your secret store now.
+            let credentials = GitHubAppCredentials(appID: String(conversion.id), privateKeyPEM: conversion.pem)
+            await request.application.gitHubAccess.useCredentials(credentials)
+            return Response(status: .seeOther, headers: ["Location": "https://console.example.com/github"])
+        }
+    }
+
+    func latestAsset(_ app: Application, installationID: Int64) async throws {
+        let client = app.gitHubAccess.client(for: installationID)
+        let release = try await client.latestRelease(in: "octocat/hello-world")
+        guard let asset = release.assets.first else { return }
+
+        // Streamed to disk; the size and SHA-256 GitHub published are checked before it is accepted.
+        let file = URL(fileURLWithPath: "/tmp/\(asset.name)")
+        let download = try await client.downloadAsset(asset, in: "octocat/hello-world", to: file)
+        print(download.sha256)
+    }
+
     // MARK: - Installation tokens, in-process
 
     func cloneURL(
